@@ -6,7 +6,7 @@ const db = mysql.createConnection(
     {
         host: 'localhost',
         user: 'root',
-        password: 'Plutonium1!',
+        password: 'password',
         database: 'company'
     },
     console.log('Connected to the company database')
@@ -28,7 +28,7 @@ const start = () => {
                 addEmployee();
                 break;
             case 'Update Employee Role':
-
+                updateEmployee();
                 break;
             case 'View All Roles':
                 viewRoles();
@@ -185,6 +185,42 @@ function addEmployee() {
             });
         });
     });
+}
+
+function updateEmployee() {
+    db.query('SELECT first_name, last_name, id FROM employee', (err, employeeList) => {
+        if (err) {
+            console.error(err);
+        }
+        inquirer.prompt({
+            type: 'list',
+            name: 'employee',
+            message: 'Which employee would you like to update?',
+            choices: employeeList.map((employee) => `${employee.first_name} ${employee.last_name}`)
+        }).then((empAnswer) => {
+            const { employee } = empAnswer;
+            const empId = employeeList[employeeList.map((employee) => `${employee.first_name} ${employee.last_name}`).indexOf(employee)].id;
+            db.query('SELECT title, id FROM role', (err,roles) => {
+                if (err) {
+                    console.error(err);
+                }
+                inquirer.prompt({
+                    type: 'list',
+                    name: 'roleUpdate',
+                    message: 'Which role is this employee being given?',
+                    choices: roles.map((role) => role.title)
+                }).then((roleAnswer) => {
+                    const roleId = roles[roles.map(role => role.title).indexOf(roleAnswer.roleUpdate)].id;
+                    db.query('UPDATE employee SET role_id = ? WHERE id = ?', [roleId, empId], (err, updatedEmployee) => {
+                        if (err) {
+                            console.error(err);
+                        }
+                        start();
+                    });
+                })
+            });
+        });
+    });  
 }
 
 start();
