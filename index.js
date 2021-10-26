@@ -54,16 +54,6 @@ const start = () => {
     });
 }
 
-// function viewDepartments() {
-//     db.query('SELECT * FROM department', (err, result) => {
-//         if (err) {
-//             console.error(err);
-//         }
-//         console.table(result);
-//         start();
-//     });
-// }
-
 async function viewDepartments() {
     try {
         const departments = (await queryDepartments())[0];
@@ -105,7 +95,7 @@ function addDepartment() {
         message: 'What is the name of the department?'
     }).then((res) => {
         db.query('INSERT INTO department (name) VALUES (?)', res.departmentName).then((result) => {
-            console.table(result[0]);
+            // console.table(result[0]);
             console.log(`\nAdded ${res.departmentName} to the database.`);
             start();
         }).catch((err) => {
@@ -165,11 +155,11 @@ async function addEmployee() {
         type: 'list',
         name: 'manager',
         message: 'Who is the employee\'s manager?',
-        choices: employeeInfo.map((role) => `${role.first_name} ${role.last_name}`)
+        choices: [...employeeInfo.map((role) => `${role.first_name} ${role.last_name}`), 'None']
     }]).then((answer) => {
         const { firstName, lastName, role, manager } = answer;
         const roleId = roleResult.filter((elem) => elem.title === role)[0].id;
-        const managerId = employeeInfo.filter((elem) => `${elem.first_name} ${elem.last_name}` === manager)[0].id;
+        const managerId = manager === 'None' ? null : employeeInfo.filter((elem) => `${elem.first_name} ${elem.last_name}` === manager)[0].id;
         db.query('INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)', [firstName, lastName, roleId, managerId]).then(result => {
             console.log('\nAdded employee to the database.');
             start();
